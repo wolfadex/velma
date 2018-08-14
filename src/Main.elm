@@ -204,13 +204,13 @@ view  model =
                        -- , typeAliasView typeAliasDeclarations TODO
                        ]
             , modalView
-                showElmPackageModal
-                (packageListHeader searchFilter)
-                (packageListView elmPackageList searchFilter vPackage.dependencies)
-            , modalView
                 showSettingsModal
                 settingsHeader
                 (settingsBody vPackage)
+            , modalView
+                showElmPackageModal
+                (packageListHeader searchFilter)
+                (packageListView elmPackageList searchFilter vPackage.dependencies)
             , Svg.svg
                 [ SAttr.style "height: 100vh; width: 100vw;"
                 , SAttr.class "app__board"
@@ -238,52 +238,58 @@ settingsBody { version, summary, repository, license, dependencies } =
         { major, minor, patch } = version
     in
         Html.div [ HAttr.class "settings__body" ]
-                 [ Html.label [ HAttr.class "settings__version" ]
-                              [ settingsLabel "Version"
-                              , Html.input [ HAttr.type_ "number"
-                                           , HAttr.step "1"
-                                           , HAttr.min "0"
-                                           , HAttr.value <| toString major
-                                           ]
-                                           []
-                              , Html.input [ HAttr.type_ "number"
-                                           , HAttr.step "1"
-                                           , HAttr.min "0"
-                                           , HAttr.value <| toString minor
-                                           ]
-                                           []
-                              , Html.input [ HAttr.type_ "number"
-                                           , HAttr.step "1"
-                                           , HAttr.min "0"
-                                           , HAttr.value <| toString patch
-                                           ]
-                                           []
-                              ]
-                 , Html.label [ HAttr.class "settings__summary" ]
-                              [ settingsLabel "Summary"
-                              , Html.input [ HAttr.value summary
-                                           , HAttr.maxlength 80
-                                           ]
-                                           []
-                              ]
-                 , Html.label [ HAttr.class "settings__license" ]
-                              [ settingsLabel "License"
-                              , Html.input [ HAttr.value license
-                                           ]
-                                           []
-                              ]
-                 , Html.label [ HAttr.class "settings__repository" ]
-                              [ settingsLabel "Repository"
-                              , Html.input [ HAttr.value repository
-                                           ]
-                                           []
-                              ]
-                 , Html.label [ HAttr.class "settings__dependencies" ]
-                              [ settingsLabel "Dependencies"
-                              , Html.ul [ HAttr.class "settings__dependencies__list"
+                 [ Html.div [ HAttr.class "settings__version" ]
+                            [ settingsLabel "Version"
+                            , Html.input [ HAttr.type_ "number"
+                                         , HAttr.step "1"
+                                         , HAttr.min "0"
+                                         , HAttr.value <| toString major
+                                         ]
+                                         []
+                            , Html.input [ HAttr.type_ "number"
+                                         , HAttr.step "1"
+                                         , HAttr.min "0"
+                                         , HAttr.value <| toString minor
+                                         ]
+                                         []
+                            , Html.input [ HAttr.type_ "number"
+                                         , HAttr.step "1"
+                                         , HAttr.min "0"
+                                         , HAttr.value <| toString patch
+                                         ]
+                                         []
+                            ]
+                 , Html.div [ HAttr.class "settings__summary" ]
+                            [ settingsLabel "Summary"
+                            , Html.input [ HAttr.value summary
+                                         , HAttr.maxlength 80
+                                         ]
+                                         []
+                            ]
+                 , Html.div [ HAttr.class "settings__license" ]
+                            [ settingsLabel "License"
+                            , Html.input [ HAttr.value license
+                                         ]
+                                         []
+                            ]
+                 , Html.div [ HAttr.class "settings__repository" ]
+                            [ settingsLabel "Repository"
+                            , Html.input [ HAttr.value repository
+                                         ]
+                                         []
+                            ]
+                 , Html.div [ HAttr.class "settings__dependencies" ]
+                            [ Html.span [ HAttr.class "settings__label" ]
+                                        [ Html.text "Dependencies:"
+                                        , Html.button [ HAttr.class "button--generic settings__dependencies__add-button"
+                                                      , HEvent.onClick RequestElmPackages
+                                                      ]
+                                                      [ Html.text "Add" ]
                                         ]
-                                        <| List.map dependencyItem (Dict.toList dependencies)
-                              ]
+                            , Html.ul [ HAttr.class "settings__dependencies__list"
+                                      ]
+                                      <| List.map dependencyItem (Dict.toList dependencies)
+                            ]
                  ]
 
 
@@ -426,8 +432,8 @@ importsView importStatements =
 newImportView : Html Msg
 newImportView =
     Html.li [ HAttr.class "app__left-pane__imports__add-new" ]
-            [ Html.button [ HEvent.onClick RequestElmPackages
-                          , HAttr.class "button--generic"
+            [ Html.button [ HAttr.class "button--generic"
+                          -- , HEvent.onClick AddPackageImport
                           ]
                           [ Html.text "Add Import" ]
             ]
