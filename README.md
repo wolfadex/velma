@@ -6,10 +6,10 @@ A visual editor for elm
 ## Features
 - [x] Add packages
 - [x] Remove packages
-- [ ] Change version
-- [ ] Change summary
-- [ ] Change license
-- [ ] Change repository
+- [x] Change version
+- [x] Change summary
+- [x] Change license
+- [x] Change repository
 - [x] Set module name
 - [ ] Add Imports
 - [ ] Remove Imports

@@ -57,6 +57,10 @@ type Msg
     | RemoveDependency Name
     | ReceiveElmPackageDocs Name (Result Http.Error (List ElmPackageDoc))
     | ShowSettingsModal Bool
+    | ChangeVersion Version
+    | ChangeSummmary String
+    | ChangeLicense String
+    | ChangeRepository String
 
 
 init : ( Model, Cmd Msg )
@@ -124,6 +128,35 @@ update msg ({ vFile, elmPackageList, vPackage, packageDocs } as model) =
             )
         ShowSettingsModal nextShow ->
             ( { model | showSettingsModal = nextShow }, Cmd.none )
+        ChangeVersion v ->
+            ( { model | vPackage = changeVersion vPackage v }, Cmd.none )
+        ChangeSummmary summary ->
+            ( { model | vPackage = changeSummary vPackage summary }, Cmd.none )
+        ChangeLicense license ->
+            ( { model | vPackage = changeLicense vPackage license }, Cmd.none )
+        ChangeRepository repo ->
+            ( { model | vPackage = changeRepository vPackage repo }, Cmd.none )
+
+
+
+changeVersion : VPackage -> Version -> VPackage
+changeVersion vPackage version =
+    { vPackage | version = version }
+
+
+changeSummary : VPackage -> String -> VPackage
+changeSummary vPackage summary =
+    { vPackage | summary = summary }
+
+
+changeLicense : VPackage -> String -> VPackage
+changeLicense vPackage license =
+    { vPackage | license = license }
+
+
+changeRepository : VPackage -> String -> VPackage
+changeRepository vPackage repository =
+    { vPackage | repository = repository }
 
 
 addDependencyToModel : VPackage -> Name -> Version -> VPackage
@@ -244,18 +277,39 @@ settingsBody { version, summary, repository, license, dependencies } =
                                          , HAttr.step "1"
                                          , HAttr.min "0"
                                          , HAttr.value <| toString major
+                                         , HEvent.onInput <| (\v ->
+                                                                ChangeVersion { version
+                                                                              | major = case String.toInt v of
+                                                                                            Ok n -> n
+                                                                                            Err _ -> major
+                                                                              }
+                                                             )
                                          ]
                                          []
                             , Html.input [ HAttr.type_ "number"
                                          , HAttr.step "1"
                                          , HAttr.min "0"
                                          , HAttr.value <| toString minor
+                                         , HEvent.onInput <| (\v ->
+                                                                ChangeVersion { version
+                                                                              | minor = case String.toInt v of
+                                                                                            Ok n -> n
+                                                                                            Err _ -> minor
+                                                                              }
+                                                             )
                                          ]
                                          []
                             , Html.input [ HAttr.type_ "number"
                                          , HAttr.step "1"
                                          , HAttr.min "0"
                                          , HAttr.value <| toString patch
+                                         , HEvent.onInput <| (\v ->
+                                                                ChangeVersion { version
+                                                                              | patch = case String.toInt v of
+                                                                                            Ok n -> n
+                                                                                            Err _ -> patch
+                                                                              }
+                                                             )
                                          ]
                                          []
                             ]
@@ -263,18 +317,21 @@ settingsBody { version, summary, repository, license, dependencies } =
                             [ settingsLabel "Summary"
                             , Html.input [ HAttr.value summary
                                          , HAttr.maxlength 80
+                                         , HEvent.onInput ChangeSummmary
                                          ]
                                          []
                             ]
                  , Html.div [ HAttr.class "settings__license" ]
                             [ settingsLabel "License"
                             , Html.input [ HAttr.value license
+                                         , HEvent.onInput ChangeLicense
                                          ]
                                          []
                             ]
                  , Html.div [ HAttr.class "settings__repository" ]
                             [ settingsLabel "Repository"
                             , Html.input [ HAttr.value repository
+                                         , HEvent.onInput ChangeRepository
                                          ]
                                          []
                             ]
