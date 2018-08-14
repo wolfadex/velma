@@ -43,12 +43,12 @@ type alias Model =
     , vPackage : VPackage
     , packageDocs : Dict Name (List ElmPackageDoc)
     , showSettingsModal : Bool
+    , showImportModal : Bool
     }
 
 
 type Msg
-    = NoOp
-    | ModuleChangeName ModuleName
+    = ModuleChangeName ModuleName
     | RequestElmPackages
     | ReceiveElmPackageList (Result Http.Error (List ElmListPackage))
     | UpdateSearchFilter String
@@ -61,6 +61,7 @@ type Msg
     | ChangeSummmary String
     | ChangeLicense String
     | ChangeRepository String
+    | ShowImportModal Bool
 
 
 init : ( Model, Cmd Msg )
@@ -72,16 +73,16 @@ init =
       , vPackage = defaultVPackage
       , packageDocs = Dict.empty
       , showSettingsModal = False
+      , showImportModal = False
       }
-    , Cmd.none
+    , Cmd.batch [ getPackageDocs "elm-lang/core" (Version 5 1 1)
+                ]
     )
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg ({ vFile, elmPackageList, vPackage, packageDocs } as model) =
     case msg of
-        NoOp ->
-            ( model, Cmd.none )
         ModuleChangeName newName ->
             ( { model | vFile = updateModuleName vFile newName
               }
@@ -136,6 +137,8 @@ update msg ({ vFile, elmPackageList, vPackage, packageDocs } as model) =
             ( { model | vPackage = changeLicense vPackage license }, Cmd.none )
         ChangeRepository repo ->
             ( { model | vPackage = changeRepository vPackage repo }, Cmd.none )
+        ShowImportModal nextShow ->
+            ( { model | showImportModal = nextShow }, Cmd.none )
 
 
 
@@ -217,6 +220,7 @@ view  model =
         , vPackage
         , packageDocs
         , showSettingsModal
+        , showImportModal
         } = model
         { moduleDeclaration
         , importStatements
@@ -237,8 +241,12 @@ view  model =
                        -- , typeAliasView typeAliasDeclarations TODO
                        ]
             , modalView
+                showImportModal
+                (genericModalHeader "Importable Modules" ShowImportModal)
+                (importModalBody vPackage)
+            , modalView
                 showSettingsModal
-                settingsHeader
+                (genericModalHeader "Settings" ShowSettingsModal)
                 (settingsBody vPackage)
             , modalView
                 showElmPackageModal
@@ -253,16 +261,21 @@ view  model =
             ]
 
 
-settingsHeader : Html Msg
-settingsHeader =
-    Html.div [ HAttr.class "settings__header" ]
-             [ Html.span [ HAttr.class "settings__header__title" ]
-                         [ Html.text "Settings" ]
-             , Html.button [ HAttr.class "settings__header__close-button button--icon"
-                           , HEvent.onClick <| ShowSettingsModal False
+genericModalHeader : String -> (Bool -> Msg) -> Html Msg
+genericModalHeader title closeMessage =
+    Html.div [ HAttr.class "generic-modal__header" ]
+             [ Html.span [ HAttr.class "generic-modal__header__title" ]
+                         [ Html.text title ]
+             , Html.button [ HAttr.class "generic-modal__header__close-button button--icon"
+                           , HEvent.onClick <| closeMessage False
                            ]
                            [ Html.i [ HAttr.class "fas fa-times" ] [] ]
              ]
+
+
+importModalBody : VPackage -> Html Msg
+importModalBody { dependencies } =
+    Html.ul [] []
 
 
 settingsBody : VPackage -> Html Msg
@@ -355,6 +368,7 @@ dependencyItem (name, { lower, upper }) =
     Html.li [ HAttr.class "settings__dependencies__list__item" ]
             [ Html.button [ HAttr.class "button--generic settings__dependencies__list__item__remove"
                           , HEvent.onClick <| RemoveDependency name
+                          , HAttr.disabled (name == "elm-lang/core")
                           ]
                           [ Html.text "Remove" ]
             , Html.text <| name ++ ": " ++ (versionToString lower) ++ "<= v < " ++ (versionToString upper)
@@ -490,7 +504,7 @@ newImportView : Html Msg
 newImportView =
     Html.li [ HAttr.class "app__left-pane__imports__add-new" ]
             [ Html.button [ HAttr.class "button--generic"
-                          -- , HEvent.onClick AddPackageImport
+                          , HEvent.onClick <| ShowImportModal True
                           ]
                           [ Html.text "Add Import" ]
             ]
@@ -630,9 +644,9 @@ decodePackageDocs =
             (JD.field "name" JD.string)
             (JD.field "types"
                 (JD.list
-                    (JD.map4 ElmPackageType
+                    (JD.map3 ElmPackageType
                         (JD.field "args" (JD.list JD.string))
-                        (JD.field "cases" (JD.list JD.string))
+                        -- (JD.field "cases" (JD.list JD.string)) TODO
                         (JD.field "comment" JD.string)
                         (JD.field "name" JD.string)
                     )

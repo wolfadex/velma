@@ -143,7 +143,7 @@ type alias ElmPackageAlias =
 
 type alias ElmPackageType =
     { args : List String
-    , cases : List String
+    -- , cases : List String
     , comment : String
     , name : Name
     }
@@ -236,7 +236,9 @@ defaultVPackage =
     , summary = "helpful summary of your project, less than 80 characters"
     , repository = "https://github.com/user/project.git"
     , license = "BSD3"
-    , dependencies = Dict.empty
+    , dependencies = Dict.singleton "elm-lang/core" { lower = Version 5 1 1
+                                                    , upper = (Version 6 0 0)
+                                                    }
     }
 
 
