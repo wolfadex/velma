@@ -1,0 +1,288 @@
+:root {
+ --color-primary: #C25E86;
+ --color-secondary: #FFAD65;
+ --color-tertiary: #F9F871;
+
+ --color-red2: #E6717D;
+ --color-orange2: #FE8B70;
+ --color-yellow2: #FFD262;
+
+ --color-black: #1d1d1d;
+ --color-white: #efefef;
+}
+
+body {
+  font-family: 'Source Sans Pro', 'Trebuchet MS', 'Lucida Grande', 'Bitstream Vera Sans', 'Helvetica Neue', sans-serif;
+  margin: 0;
+  text-align: center;
+  color: var(--color-black);
+}
+
+button {
+  cursor: pointer;
+}
+
+a {
+  color: var(--color-tertiary);
+}
+
+/* a:visited {
+  NOTE: Maybe this will come back? Note sure yet.
+  color: var(--color-yellow2);
+} */
+
+.button--generic {
+  background-color: var(--color-secondary);
+  border: none;
+  font-size: 1rem;
+  padding: 0.25rem 0.5rem;
+}
+
+.button--generic:hover,
+.button--generic:focus {
+  background-color: var(--color-tertiary);
+}
+
+.button--generic:active {
+  background-color: var(--color-red2);
+}
+
+.button--generic:hover,
+.button--generic:focus,
+.button--icon:hover,
+.button--icon:focus {
+  outline: none
+}
+
+.button--icon {
+  background: none;
+  border: none;
+  font-size: 1.3rem;
+}
+
+.button--icon i {
+  color: var(--color-secondary);
+}
+
+.button--icon:hover i,
+.button--icon:focus i {
+  color: var(--color-tertiary);
+}
+
+.button--icon:active i {
+  color: var(--color-red2);
+}
+
+.test-output {
+  text-align: left;
+  white-space: pre;
+}
+
+.app {
+  display: flex;
+  background: var(--color-white);
+}
+
+.app__left-pane {
+  align-items: center;
+  background-color: var(--color-primary);
+  display: flex;
+  flex-direction: column;
+  width: 30rem;
+}
+
+.app__left-pane__settings {
+  align-items: center;
+  display: flex;
+  height: 4rem;
+  justify-content: flex-start;
+  width: calc(100% - 5rem);
+}
+
+.app__left-pane__settings__button {
+  margin-right: 1rem;
+}
+
+.app__left-pane__settings__title {
+  flex: 1;
+  text-align: left;
+  font-size: 2rem;
+}
+
+.app__left-pane__module {
+  padding: 1rem;
+  border-bottom: 1px solid var(--color-black);
+}
+
+.app__left-pane__imports {
+  list-style: none;
+  padding: 1rem 0;
+  margin: 0;
+}
+
+.app__board {
+  /* background: green; */
+}
+
+.modal {
+  background: rgba(0, 0, 0, 0.25);
+  bottom: 0;
+  display: flex;
+  justify-content: center;
+  left: 0;
+  padding-top: 5%;
+  position: absolute;
+  right: 0;
+  top: 0;
+  z-index: 1;
+}
+
+.modal__content {
+  background-color: var(--color-primary);
+  border-radius: 0.3rem;
+  display: flex;
+  flex-direction: column;
+  max-height: 90%;
+  overflow: hidden;
+}
+
+.modal__content__header {
+  height: 4rem;
+  border-bottom: 1px solid var(--color-black);
+  display: flex;
+}
+
+.modal__content__body {
+  flex: 1;
+  overflow: auto;
+}
+
+.settings__header {
+  align-items: center;
+  display: flex;
+  flex: 1;
+  justify-content: center;
+}
+
+.settings__header__title {
+  font-size: 1.5rem;
+  margin: 0 1rem;
+  flex: 1;
+  text-align: left;
+}
+
+.settings__header__close-button {
+  margin-right: 1rem;
+}
+
+.settings__body {
+  align-items: flex-start;
+  display: flex;
+  flex-direction: column;
+  padding: 1rem;
+}
+
+.settings__body label {
+  padding: 1rem 0;
+}
+
+.settings__label {
+  margin-right: 1rem;
+}
+
+.settings__version input {
+  width: 2rem;
+  text-align: right;
+  margin-right: 0.6rem;
+}
+
+.settings__summary input {
+  min-width: 15rem;
+}
+
+.settings__dependencies {
+  align-items: flex-start;
+  display: flex;
+  flex-direction: column;
+}
+
+.settings__dependencies__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.settings__dependencies__list__item {
+  align-items: center;
+  display: flex;
+  height: 3rem;
+  justify-content: flex-start;
+}
+
+.settings__dependencies__list__item__remove {
+  margin-right: 1rem;
+}
+
+.package-list {
+  list-style: none;
+  margin: 0;
+  min-width: 20rem;
+  overflow: auto;
+  padding: 0;
+}
+
+.package-list__header {
+  align-items: center;
+  display: flex;
+  flex: 1;
+  justify-content: center;
+}
+
+.package-list__header__title {
+  font-size: 1.5rem;
+  margin-left: 1rem;
+}
+
+.package-list__header__search {
+  flex: 1;
+  display: flex;
+}
+
+.package-list__header__close-button {
+  margin-right: 1rem;
+}
+
+.package-list__search__input {
+  font-size: 1.3rem;
+  margin-left: 1rem;
+}
+
+.package-list__package {
+  align-items: center;
+  display: flex;
+  height: 4rem;
+  justify-content: center;
+}
+
+.package-list__package:not(:last-child) {
+  border-bottom: 1px solid var(--color-black);
+}
+
+.package-list__package__details {
+  align-items: flex-start;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.package-list__package__details__top {
+  margin-bottom: 0.2rem;
+}
+
+.package-list__package__details__version {
+  margin-right: 1rem;
+}
+
+.package-list__package__add {
+  margin: 0 1rem;
+}
