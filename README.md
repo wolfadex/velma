@@ -11,8 +11,8 @@ A visual editor for elm
 - [x] Change license
 - [x] Change repository
 - [x] Set module name
-- [ ] Add Imports
-- [ ] Remove Imports
+- [x] Add Imports
+- [x] Remove Imports
 - [ ] Modify Imports (exposes)
 - [ ] Add Types
 - [ ] Remove Types
