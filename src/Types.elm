@@ -1,6 +1,9 @@
 module Types exposing
+    -- MESSAGES
+    ( Msg(..)
     -- TYPES
-    ( ModuleName
+    , ModuleName
+    , PackageName
     , Name
     , Comment
     , QualifiedType
@@ -24,6 +27,7 @@ module Types exposing
     , FunctionDeclaration
     , VFile
     , VPackage
+    , Model
     -- HELPERS
     , versionToString
     , versionFromString
@@ -33,12 +37,40 @@ module Types exposing
 
 
 import Dict exposing (Dict)
+import Http
 
 
----- Types & ALIASES ----
+---- MESSAGES ----
+
+
+type Msg
+    = ModuleChangeName ModuleName
+    | RequestElmPackages
+    | ReceiveElmPackageList (Result Http.Error (List ElmListPackage))
+    | UpdateSearchFilter String
+    | ShowPackageModal Bool
+    | AddDependency Name Version
+    | RemoveDependency Name
+    | ReceiveElmPackageDocs Name (Result Http.Error (List ElmPackageDoc))
+    | ShowSettingsModal Bool
+    | ChangeVersion Version
+    | ChangeSummmary String
+    | ChangeLicense String
+    | ChangeRepository String
+    | ShowImportModal Bool
+    | AddImport ModuleName PackageName
+    | RemoveImport ModuleName
+
+
+
+---- TYPES & ALIASES ----
 
 
 type alias ModuleName =
+    String
+
+
+type alias PackageName =
     String
 
 
@@ -51,7 +83,7 @@ type alias Comment =
 
 
 type alias QualifiedType =
-    List Name
+    String
 
 
 type ExportSet
@@ -109,7 +141,7 @@ type StatementModule
 
 
 type StatementImport
-    = StatementImport ModuleName (Maybe ExportSet)
+    = StatementImport ModuleName PackageName (Maybe ExportSet)
 
 
 type TypeDeclaration
@@ -182,8 +214,8 @@ type alias FunctionDeclaration =
 
 type alias VFile =
     { moduleDeclaration : StatementModule
-    , importStatements : List StatementImport
-    , typeDeclarations : List TypeDeclaration
+    , importStatements : Dict ModuleName StatementImport
+    , typeDeclarations : Dict Name TypeDeclaration
     , typeAliasDeclarations : List TypeAliasDeclaration
     , functionDeclarations : List FunctionDeclaration
     }
@@ -195,6 +227,18 @@ type alias VPackage =
     , repository : String
     , license : String
     , dependencies : Dict Name VersionRange
+    }
+
+
+type alias Model =
+    { vFile : VFile
+    , elmPackageList : List ElmListPackage
+    , showElmPackageModal : Bool
+    , searchFilter : String
+    , vPackage : VPackage
+    , packageDocs : Dict Name (List ElmPackageDoc)
+    , showSettingsModal : Bool
+    , showImportModal : Bool
     }
 
 
@@ -242,6 +286,12 @@ defaultVPackage =
     }
 
 
-makeVFile : StatementModule -> List StatementImport -> List TypeDeclaration -> List TypeAliasDeclaration -> List FunctionDeclaration -> VFile
+makeVFile :
+    StatementModule ->
+    Dict ModuleName StatementImport ->
+    Dict QualifiedType TypeDeclaration ->
+    List TypeAliasDeclaration ->
+    List FunctionDeclaration ->
+    VFile
 makeVFile vModule vImports typeDeclarations typeAliasDeclarations functionDeclarations =
     VFile vModule vImports typeDeclarations typeAliasDeclarations functionDeclarations

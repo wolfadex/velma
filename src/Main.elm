@@ -1,25 +1,15 @@
 module Main exposing (..)
 
--- import Draggable
--- import Draggable.Events exposing (onClick, onDragBy, onDragStart)
-import Char
-import Debug exposing (log)
+
 import Dict exposing (Dict)
+import External exposing (getPackageDocs)
 import Html exposing (Html)
 import Html.Attributes as HAttr
 import Html.Events as HEvent
-import Http
-import Json.Decode as JD
-import Regex
 import Svg exposing (Svg)
 import Svg.Attributes as SAttr
--- import Math.Vector2 as Vector2 exposing (Vec2, getX, getY)
-import Svg exposing (Svg)
-import Svg.Attributes as SAttr
--- import Svg.Events exposing (onMouseUp)
--- import Svg.Keyed
--- import Svg.Lazy exposing (lazy)
 import Types exposing (..)
+import Update exposing (update)
 
 
 
@@ -35,38 +25,10 @@ main =
         , view = view
         }
 
-type alias Model =
-    { vFile : VFile
-    , elmPackageList : List ElmListPackage
-    , showElmPackageModal : Bool
-    , searchFilter : String
-    , vPackage : VPackage
-    , packageDocs : Dict Name (List ElmPackageDoc)
-    , showSettingsModal : Bool
-    , showImportModal : Bool
-    }
-
-
-type Msg
-    = ModuleChangeName ModuleName
-    | RequestElmPackages
-    | ReceiveElmPackageList (Result Http.Error (List ElmListPackage))
-    | UpdateSearchFilter String
-    | ShowPackageModal Bool
-    | AddDependency Name Version
-    | RemoveDependency Name
-    | ReceiveElmPackageDocs Name (Result Http.Error (List ElmPackageDoc))
-    | ShowSettingsModal Bool
-    | ChangeVersion Version
-    | ChangeSummmary String
-    | ChangeLicense String
-    | ChangeRepository String
-    | ShowImportModal Bool
-
 
 init : ( Model, Cmd Msg )
 init =
-    ( { vFile = makeVFile (ModuleDeclaration "TestModule" AllExport) [] [] [] []
+    ( { vFile = makeVFile (ModuleDeclaration "TestModule" AllExport) Dict.empty Dict.empty [] []
       , elmPackageList = []
       , showElmPackageModal = False
       , searchFilter = ""
@@ -78,127 +40,6 @@ init =
     , Cmd.batch [ getPackageDocs "elm-lang/core" (Version 5 1 1)
                 ]
     )
-
-
-update : Msg -> Model -> ( Model, Cmd Msg )
-update msg ({ vFile, elmPackageList, vPackage, packageDocs } as model) =
-    case msg of
-        ModuleChangeName newName ->
-            ( { model | vFile = updateModuleName vFile newName
-              }
-            , Cmd.none
-            )
-        RequestElmPackages ->
-            ( { model | showElmPackageModal = True }, getPackages )
-        ReceiveElmPackageList (Err err) ->
-            log (toString err) ( { model
-              | elmPackageList = []
-              , showElmPackageModal = False
-              }
-            , Cmd.none
-            )
-        ReceiveElmPackageList (Ok listPackages) ->
-            ( { model | elmPackageList = listPackages
-              }
-            , Cmd.none
-            )
-        UpdateSearchFilter text ->
-            ( { model | searchFilter = text }, Cmd.none )
-        ShowPackageModal showModal ->
-            ( { model | showElmPackageModal = showModal }, Cmd.none )
-        AddDependency name version ->
-            ( { model
-              | vPackage = addDependencyToModel vPackage name version
-              , showElmPackageModal = False
-              }
-            , getPackageDocs name version
-            )
-        RemoveDependency name ->
-              ( { model
-                | vPackage = removeDependencyToModel vPackage name
-                }
-              , Cmd.none
-              )
-        ReceiveElmPackageDocs name (Err err) ->
-            log (toString err) ( model, Cmd.none )
-        ReceiveElmPackageDocs name (Ok docs) ->
-            ( { model
-              | packageDocs = Dict.insert name docs packageDocs
-              }
-            , Cmd.none
-            )
-        ShowSettingsModal nextShow ->
-            ( { model | showSettingsModal = nextShow }, Cmd.none )
-        ChangeVersion v ->
-            ( { model | vPackage = changeVersion vPackage v }, Cmd.none )
-        ChangeSummmary summary ->
-            ( { model | vPackage = changeSummary vPackage summary }, Cmd.none )
-        ChangeLicense license ->
-            ( { model | vPackage = changeLicense vPackage license }, Cmd.none )
-        ChangeRepository repo ->
-            ( { model | vPackage = changeRepository vPackage repo }, Cmd.none )
-        ShowImportModal nextShow ->
-            ( { model | showImportModal = nextShow }, Cmd.none )
-
-
-
-changeVersion : VPackage -> Version -> VPackage
-changeVersion vPackage version =
-    { vPackage | version = version }
-
-
-changeSummary : VPackage -> String -> VPackage
-changeSummary vPackage summary =
-    { vPackage | summary = summary }
-
-
-changeLicense : VPackage -> String -> VPackage
-changeLicense vPackage license =
-    { vPackage | license = license }
-
-
-changeRepository : VPackage -> String -> VPackage
-changeRepository vPackage repository =
-    { vPackage | repository = repository }
-
-
-addDependencyToModel : VPackage -> Name -> Version -> VPackage
-addDependencyToModel ({ dependencies } as vPackage) name version =
-    { vPackage | dependencies = addDependencyToVPackage dependencies name version }
-
-
-addDependencyToVPackage : Dict Name VersionRange -> Name -> Version -> Dict Name VersionRange
-addDependencyToVPackage dependencyDict name version =
-    if Dict.member name dependencyDict then
-        dependencyDict
-    else
-        Dict.insert name (VersionRange version (Version (version.major + 1) 0 0)) dependencyDict
-
-
-removeDependencyToModel : VPackage -> Name -> VPackage
-removeDependencyToModel ({ dependencies } as vPackage) name =
-    { vPackage | dependencies = Dict.remove name dependencies }
-
-
-updateModuleName : VFile -> ModuleName -> VFile
-updateModuleName vFile newName =
-    case vFile.moduleDeclaration of
-        ModuleDeclaration _ exportSet ->
-            { vFile | moduleDeclaration = ModuleDeclaration (formatFirstUpper newName) exportSet }
-        PortModuleDeclaration _ exportSet ->
-            { vFile | moduleDeclaration = PortModuleDeclaration (formatFirstUpper newName) exportSet }
-
-
-formatFirstUpper : String -> String
-formatFirstUpper string =
-    case String.uncons string of
-        Just (c, ss) -> onlyLatin <| String.cons (Char.toUpper c) ss
-        _ -> string
-
-
-onlyLatin : String -> String
-onlyLatin string =
-    Regex.replace Regex.All (Regex.regex "[^a-zA-Z]") (\_ -> "") string
 
 
 subscriptions : Model -> Sub Msg
@@ -237,13 +78,13 @@ view  model =
                        [ header vPackage packageDocs
                        , moduleView moduleDeclaration
                        , importsView importStatements
-                       -- , typeView typeDeclarations TODO
+                       , typesView typeDeclarations
                        -- , typeAliasView typeAliasDeclarations TODO
                        ]
             , modalView
                 showImportModal
                 (genericModalHeader "Importable Modules" ShowImportModal)
-                (importModalBody vPackage)
+                (importModalBody packageDocs importStatements)
             , modalView
                 showSettingsModal
                 (genericModalHeader "Settings" ShowSettingsModal)
@@ -273,9 +114,31 @@ genericModalHeader title closeMessage =
              ]
 
 
-importModalBody : VPackage -> Html Msg
-importModalBody { dependencies } =
-    Html.ul [] []
+importModalBody : Dict Name (List ElmPackageDoc) -> Dict ModuleName StatementImport -> Html Msg
+importModalBody packageDocs importStatements =
+    Html.ul [ HAttr.class "import-modal__list" ]
+            <| List.map importPackageListView (Dict.toList packageDocs)
+
+
+importPackageListView : (Name, List ElmPackageDoc) -> Html Msg
+importPackageListView (name, packageDocs) =
+    Html.li [ HAttr.class "import-modal__list__package" ]
+            [ Html.div [ HAttr.class "import-modal__list__package__title" ]
+                       [ Html.text <| String.join " / " <| String.split "/" name ]
+            , Html.ul [ HAttr.class "import-modal__list__package__list" ]
+                      <| List.map (importModuleListView name) <| List.sortBy (\{ name } -> name) packageDocs
+            ]
+
+
+importModuleListView : Name -> ElmPackageDoc -> Html Msg
+importModuleListView packageName { name } =
+    Html.li [ HAttr.class "import-modal__list__package__list__module" ]
+            [ Html.button [ HAttr.class "button--generic import-modal__list__package__list__module__import-button"
+                          , HEvent.onClick <| AddImport name packageName
+                          ]
+                          [ Html.text "Import" ]
+            , Html.text name
+            ]
 
 
 settingsBody : VPackage -> Html Msg
@@ -494,10 +357,10 @@ moduleView vModule =
                ]
 
 
-importsView : List StatementImport -> Html Msg
+importsView : Dict ModuleName StatementImport -> Html Msg
 importsView importStatements =
     Html.ul [ HAttr.class "app__left-pane__imports" ]
-            <| newImportView :: List.map importView importStatements
+            <| newImportView :: List.map importView (Dict.toList importStatements)
 
 
 newImportView : Html Msg
@@ -510,12 +373,16 @@ newImportView =
             ]
 
 
-importView : StatementImport -> Html Msg
-importView importStatement =
+importView : (ModuleName, StatementImport) -> Html Msg
+importView (_, importStatement) =
     case importStatement of
-        StatementImport moduleName exportSetMaybe ->
+        StatementImport moduleName _ exportSetMaybe ->
             Html.li [ HAttr.class "app__left-pane__imports__import" ]
-                    [ Html.text moduleName
+                    [ Html.button [ HAttr.class "button--generic app__left-pane__imports__import__remove-button"
+                                  , HEvent.onClick <| RemoveImport moduleName
+                                  ]
+                                  [ Html.text "Remove" ]
+                    , Html.text moduleName
                     , importExportsView exportSetMaybe
                     ]
 
@@ -533,6 +400,27 @@ importExportsView exportSetMaybe =
               Html.text <| "(" ++ name ++ ")"
           Just (TypeExport name maybeExportSet) ->
               Html.text <| "(" ++ name ++  ")" -- TODO
+
+
+typesView : Dict QualifiedType TypeDeclaration -> Html Msg
+typesView typeDeclarations =
+    Html.ul [ HAttr.class "types-view" ]
+            <| newTypeView :: List.map typeView (Dict.toList typeDeclarations)
+
+
+newTypeView : Html Msg
+newTypeView =
+    Html.li []
+            [ Html.button [ HAttr.class "button--generic types-view__new-button" ]
+                          [ Html.text "Create New Type" ]
+            ]
+
+
+typeView : (QualifiedType, TypeDeclaration) -> Html Msg
+typeView (_, typeDeclaration) =
+    case typeDeclaration of
+        TypeDeclaration t tList ->
+            Html.li [] [ Html.text "Type Stuff Here" ]
 
 
 -- vFunctionView : VFunction -> Svg Msg
@@ -580,85 +468,3 @@ importExportsView exportSetMaybe =
 -- vImportToText : VImport -> String -> String
 -- vImportToText { name } previousVImports =
 --     previousVImports ++ "import " ++ name ++ "\n"
-
-
----- EXTERNAL ----
-
-
-getPackages : Cmd Msg
-getPackages =
-  let
-    url =
-      "http://package.elm-lang.org/all-packages"
-  in
-    Http.send ReceiveElmPackageList requestPackages
-
-
-requestPackages : Http.Request (List ElmListPackage)
-requestPackages =
-    Http.request
-        { method = "GET"
-        , headers = []
-        , url = "http://package.elm-lang.org/all-packages"
-        , body = Http.emptyBody
-        , expect = Http.expectJson decodeElmPackageList
-        , timeout = Nothing
-        , withCredentials = False
-        }
-
-
-decodeElmPackageList : JD.Decoder (List ElmListPackage)
-decodeElmPackageList =
-    JD.list
-        (JD.map3 ElmListPackage
-            (JD.field "name" JD.string)
-            (JD.field "summary" JD.string)
-            (JD.field "versions" (JD.list JD.string))
-        )
-
-
-getPackageDocs : Name -> Version -> Cmd Msg
-getPackageDocs name version =
-    let
-        versionString = versionToString version
-        url = "http://package.elm-lang.org/packages/" ++ name ++ "/" ++ versionString ++ "/documentation.json"
-    in
-        Http.send (ReceiveElmPackageDocs name) (Http.get url decodePackageDocs)
-
-
-decodePackageDocs : JD.Decoder (List ElmPackageDoc)
-decodePackageDocs =
-    JD.list
-        (JD.map5 ElmPackageDoc
-            (JD.field "aliases"
-                (JD.list
-                    (JD.map4 ElmPackageAlias
-                        (JD.field "args" (JD.list JD.string))
-                        (JD.field "comment" JD.string)
-                        (JD.field "name" JD.string)
-                        (JD.field "type" JD.string)
-                    )
-                )
-            )
-            (JD.field "comment" JD.string)
-            (JD.field "name" JD.string)
-            (JD.field "types"
-                (JD.list
-                    (JD.map3 ElmPackageType
-                        (JD.field "args" (JD.list JD.string))
-                        -- (JD.field "cases" (JD.list JD.string)) TODO
-                        (JD.field "comment" JD.string)
-                        (JD.field "name" JD.string)
-                    )
-                )
-            )
-            (JD.field "values"
-                (JD.list
-                    (JD.map3 ElmPackageValue
-                        (JD.field "comment" JD.string)
-                        (JD.field "name" JD.string)
-                        (JD.field "type" JD.string)
-                    )
-                )
-            )
-        )

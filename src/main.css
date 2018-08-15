@@ -52,7 +52,7 @@ a {
   background-color: var(--color-tertiary);
 }
 
-.button--generic:active {
+.button--generic:active:not(:disabled) {
   background-color: var(--color-red2);
 }
 
@@ -124,9 +124,24 @@ a {
 }
 
 .app__left-pane__imports {
+  border-bottom: 3px solid var(--color-black);
   list-style: none;
-  padding: 1rem 0;
   margin: 0;
+  padding: 1rem 0;
+  text-align: left;
+  width: calc(100% - 5rem);
+}
+
+.app__left-pane__imports__add-new {
+  margin-bottom: 1rem;
+}
+
+.app__left-pane__imports__import {
+  padding: 0.25rem 0;
+}
+
+.app__left-pane__imports__import__remove-button {
+  margin-right: 0.5rem;
 }
 
 .app__board {
@@ -181,6 +196,44 @@ a {
 }
 
 .generic-modal__header__close-button {
+  margin-right: 1rem;
+}
+
+.import-modal__list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.import-modal__list__package {
+  text-align: left;
+}
+
+.import-modal__list__package:not(:first-child) {
+  border-top: 3px solid var(--color-black);
+}
+
+.import-modal__list__package__title {
+  border-bottom: 1px solid var(--color-black);
+  font-weight: bold;
+  font-size: 1.2rem;
+  padding: 0.5rem 1rem;
+  width: 100%;
+}
+
+.import-modal__list__package__list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  text-align: left;
+  padding: 0.5rem 1rem 0.5rem 1.5rem;
+}
+
+.import-modal__list__package__list__module {
+  padding: 0.15rem 0;
+}
+
+.import-modal__list__package__list__module__import-button {
   margin-right: 1rem;
 }
 
@@ -298,4 +351,17 @@ a {
 
 .package-list__package__add {
   margin: 0 1rem;
+}
+
+.types-view {
+  border-bottom: 3px solid var(--color-black);
+  list-style: none;
+  margin: 0;
+  padding: 1rem 0;
+  text-align: left;
+  width: calc(100% - 5rem);
+}
+
+.types-view__new-button {
+  margin-bottom: 1rem;
 }
