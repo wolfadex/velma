@@ -27,6 +27,7 @@ module Types exposing
     , FunctionDeclaration
     , VFile
     , VPackage
+    , TypeForm
     , Model
     -- HELPERS
     , versionToString
@@ -38,6 +39,7 @@ module Types exposing
 
 import Dict exposing (Dict)
 import Http
+import Set exposing (Set)
 
 
 ---- MESSAGES ----
@@ -60,6 +62,13 @@ type Msg
     | ShowImportModal Bool
     | AddImport ModuleName PackageName
     | RemoveImport ModuleName
+    | ShowNewTypeModal Bool
+    | NewTypeChangeName Name
+    -- | NewTypeAddVariable Name
+    -- | NewTypeChangeVariable Name
+    -- | NewTypeRemoveVariable Name
+    -- | NewTypeAddConstructor Name Type
+    -- | NewTypeRemoveConstructor Name
 
 
 
@@ -230,6 +239,13 @@ type alias VPackage =
     }
 
 
+type alias TypeForm =
+    { name : Name
+    , typeVariables : Set Name
+    , constructors : Dict Name Type
+    }
+
+
 type alias Model =
     { vFile : VFile
     , elmPackageList : List ElmListPackage
@@ -239,6 +255,8 @@ type alias Model =
     , packageDocs : Dict Name (List ElmPackageDoc)
     , showSettingsModal : Bool
     , showImportModal : Bool
+    , showNewTypeModal : Bool
+    , newTypeForm : TypeForm
     }
 
 

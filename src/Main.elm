@@ -6,6 +6,7 @@ import External exposing (getPackageDocs)
 import Html exposing (Html)
 import Html.Attributes as HAttr
 import Html.Events as HEvent
+import Set exposing (Set)
 import Svg exposing (Svg)
 import Svg.Attributes as SAttr
 import Types exposing (..)
@@ -36,6 +37,8 @@ init =
       , packageDocs = Dict.empty
       , showSettingsModal = False
       , showImportModal = False
+      , showNewTypeModal = False
+      , newTypeForm = TypeForm "" Set.empty Dict.empty
       }
     , Cmd.batch [ getPackageDocs "elm-lang/core" (Version 5 1 1)
                 ]
@@ -62,6 +65,8 @@ view  model =
         , packageDocs
         , showSettingsModal
         , showImportModal
+        , showNewTypeModal
+        , newTypeForm
         } = model
         { moduleDeclaration
         , importStatements
@@ -85,6 +90,10 @@ view  model =
                 showImportModal
                 (genericModalHeader "Importable Modules" ShowImportModal)
                 (importModalBody packageDocs importStatements)
+            , modalView
+                showNewTypeModal
+                (genericModalHeader "New Type" ShowNewTypeModal)
+                (newTypeModal newTypeForm)
             , modalView
                 showSettingsModal
                 (genericModalHeader "Settings" ShowSettingsModal)
@@ -138,6 +147,42 @@ importModuleListView packageName { name } =
                           ]
                           [ Html.text "Import" ]
             , Html.text name
+            ]
+
+
+newTypeModal : TypeForm -> Html Msg
+newTypeModal { name, typeVariables, constructors } =
+    Html.div []
+             [ Html.div []
+                        [ Html.label [] [ Html.text "Result:" ]
+                        , Html.p [] [ Html.text "type Name a b\n    = Name a\n    | Name b" ]
+                        ]
+             , Html.div []
+                        [ Html.label [] [ Html.text "Name:" ]
+                        , Html.input [ HAttr.placeholder "Unique Name"
+                                     , HAttr.value name
+                                     , HEvent.onInput NewTypeChangeName
+                                     ]
+                                     []
+                        ]
+             , Html.div []
+                        [ Html.label [] [ Html.text "Variables:" ]
+                        , Html.ul []
+                                  <| Html.li []
+                                             [ Html.button [ HAttr.class "button--generic" ]
+                                                           [ Html.text "Add Variable" ]
+                                             ]
+                                  :: List.map newTypeVariables []
+                        ]
+             ]
+
+
+newTypeVariables : a -> Html Msg
+newTypeVariables a =
+    Html.li []
+            [ Html.button [ HAttr.class "button--generic" ]
+                          [ Html.text "Remove" ]
+            , Html.input [ HAttr.placeholder "uniqueVariableName" ] []
             ]
 
 
@@ -411,7 +456,9 @@ typesView typeDeclarations =
 newTypeView : Html Msg
 newTypeView =
     Html.li []
-            [ Html.button [ HAttr.class "button--generic types-view__new-button" ]
+            [ Html.button [ HAttr.class "button--generic types-view__new-button"
+                          , HEvent.onClick <| ShowNewTypeModal True
+                          ]
                           [ Html.text "Create New Type" ]
             ]
 

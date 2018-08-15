@@ -10,7 +10,7 @@ import Types exposing (..)
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
-update msg ({ vFile, elmPackageList, vPackage, packageDocs } as model) =
+update msg ({ vFile, elmPackageList, vPackage, packageDocs, newTypeForm } as model) =
     case msg of
         ModuleChangeName newName ->
             ( { model | vFile = updateModuleName vFile newName
@@ -72,6 +72,15 @@ update msg ({ vFile, elmPackageList, vPackage, packageDocs } as model) =
             ( { model | vFile = addImport vFile moduleName packageName }, Cmd.none )
         RemoveImport moduleName ->
             ( { model | vFile = removeImport vFile moduleName }, Cmd.none )
+        ShowNewTypeModal newShow ->
+            ( { model | showNewTypeModal = newShow }, Cmd.none )
+        NewTypeChangeName name ->
+            ( { model | newTypeForm = changeNewTypeName newTypeForm name }, Cmd.none )
+
+
+changeNewTypeName : TypeForm -> Name -> TypeForm
+changeNewTypeName typeForm name =
+    { typeForm | name = formatFirstUpper name }
 
 
 addImport : VFile -> ModuleName -> PackageName -> VFile
